@@ -1,6 +1,6 @@
 # Dependable
 
-A simple as in "simple enough for anyone to understand and fix a bug in an hour" dependency injection library. We strive for maintainability and beginner-friendlyness, not necessarily feature-richness.
+A simple as in "simple enough for anyone to understand and fix a bug in an hour" dependency injection library. We strive for maintainability and beginner-friendliness, not necessarily feature-richness.
 
 ## Instalation
 
