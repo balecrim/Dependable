@@ -1,15 +1,34 @@
 import XCTest
 @testable import Dependable
 
+protocol TestProtocol {
+    var id: UUID { get }
+}
+
+class TestClass: TestProtocol {
+    var id = UUID()
+}
+
+
 final class DependableTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(Dependable().text, "Hello, World!")
+
+    override class func setUp() {
+        DependencyResolver.current = DependencyResolver()
     }
 
+    func testResolutionFlow() {
+
+        let testFactoryMethod = {
+            TestClass()
+        }
+
+        DependencyResolver.current.register(factory: testFactoryMethod, for: TestProtocol.self)
+        XCTAssertNotNil(try! DependencyResolver.current.resolve(for: TestProtocol.self))
+
+    }
+
+
     static var allTests = [
-        ("testExample", testExample),
+        ("testResolutionFlow", testResolutionFlow),
     ]
 }
