@@ -33,10 +33,6 @@ public struct DependencyResolver {
         dependencyFactories[key] = factory
         dependencyContexts[key] = context
 
-        print(key)
-        print(dependencyFactories)
-        print(dependencyContexts)
-
     }
 
     // MARK: - Resolution
@@ -49,9 +45,6 @@ public struct DependencyResolver {
     public mutating func resolve<T>(for type: T.Type) throws -> T {
 
         let key = DependencyKey(type: type)
-
-        print(dependencyContexts)
-        print(key)
 
         guard let dependencyContext = dependencyContexts[key] else {
             throw DependencyResolutionError.noRegistrationForType
