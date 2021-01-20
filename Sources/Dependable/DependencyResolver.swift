@@ -9,12 +9,16 @@ import Foundation
 
 public struct DependencyResolver {
 
-    private var dependencyContexts: [DependencyKey: DependencyContext] = [:]
+    public static var current = DependencyResolver()
 
+    private var registrationQueue = DispatchQueue(label: "dev.alecrim.dependencyRegistration",
+                                                  attributes: .concurrent)
+
+
+    private var dependencyContexts: [DependencyKey: DependencyContext] = [:]
     private var dependencyFactories: [DependencyKey: () -> Any] = [:]
     private var dependencyCache: [DependencyKey: Any] = [:]
 
-    public static var current = DependencyResolver()
 
     // MARK: - Registration
 
@@ -30,8 +34,10 @@ public struct DependencyResolver {
 
         let key = DependencyKey(type: type)
 
-        dependencyFactories[key] = factory
-        dependencyContexts[key] = context
+        registrationQueue.sync(flags: [.barrier]) {
+            self.dependencyFactories[key] = factory
+            self.dependencyContexts[key] = context
+        }
 
     }
 
@@ -46,16 +52,18 @@ public struct DependencyResolver {
 
         let key = DependencyKey(type: type)
 
-        guard let dependencyContext = dependencyContexts[key] else {
-            throw DependencyResolutionError.noRegistrationForType
-        }
+        var resolved: Any?
 
-        let resolved: Any?
+        try? registrationQueue.sync {
+            guard let dependencyContext = self.dependencyContexts[key] else {
+                throw DependencyResolutionError.noRegistrationForType
+            }
 
-        if dependencyContext == .module {
-            resolved = resolveUsingCache(for: key) ?? resolveUsingFactory(for: key)
-        } else {
-            resolved = resolveUsingFactory(for: key)
+            if dependencyContext == .module {
+                resolved = self.resolveUsingCache(for: key) ?? self.resolveUsingFactory(for: key)
+            } else {
+                resolved = self.resolveUsingFactory(for: key)
+            }
         }
 
         guard resolved != nil else {
