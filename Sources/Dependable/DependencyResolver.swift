@@ -82,7 +82,10 @@ public struct DependencyResolver {
 
     mutating private func resolveUsingCache(for key: DependencyKey) -> Any? {
         let dependency = dependencyCache[key] ?? dependencyFactories[key]?()
-        self.dependencyCache[key] = dependency
+
+        registrationQueue.sync {
+            self.dependencyCache[key] = dependency
+        }
 
         return dependency
     }
